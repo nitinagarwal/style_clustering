@@ -1,0 +1,6 @@
+logs/*
+output/*
+*.pyc
+utils/*.pyc
+.DS_Store
+.detail_estimator_env

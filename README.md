@@ -5,35 +5,30 @@ these representations and analyze the tradeoffs between them. We can compare the
 
 Tasks:
 1. Capturing details: 
+
 Question: Which representation would be best for capturing details?
 Dataset Used: [Co-Locating Style-Defining Elements on 3D Shapes](https://dl.acm.org/citation.cfm?id=3092817#)
 
 
 ## Getting Started
+This implementation uses Pytorch.
 
-To run the demo, download the sample data
-```
-bash download_dataset.sh
-```
-
-Compile mex files
-```
-mex solveLaplace.cpp
-```
-
-Please read the run_me.m file.
-
-## Citation
-If you use the code/data, please cite the following paper:
+Code has been tested on Pytorch 0.3.1 and Python 2.7.14
 
 ```
-@article{agarwal2017mouse,
-  author = {Nitin Agarwal, Xiangmin Xu, Gopi Meenakshisundaram},
-  title = {Geometry Processing of Conventionally Produced Mouse Brain Slice Images},
-  journal = {arXiv:1712.09684},
-  year = {2017}
-}
+## Download the repository
+git clone https://github.com/nitinagarwal/style_clustering.git
+cd stlye_clustering
+## Create a virtual enviroment
+virtualenv .style_clustering_env
+source .style_clutering_env/bin/activate
+## Install the required packages
+pip install -r requirements.txt
+# You are Done!
 ```
+
+Please read the train.py to start training
+
 
 ## License
 

@@ -4,9 +4,8 @@ A 3D mesh can be represented by Images, Points, Voxels or Mesh. In this code we 
 these representations and analyze the tradeoffs between them. We can compare them on various tasks.
 
 Tasks:
-1. Capturing details: 
-
-Question: Which representation would be best for capturing details?
+1. Capturing details:\ 
+Question: Which representation would be best for capturing details?\
 Dataset Used: [Co-Locating Style-Defining Elements on 3D Shapes](https://dl.acm.org/citation.cfm?id=3092817#)
 
 

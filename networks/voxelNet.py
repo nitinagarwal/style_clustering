@@ -17,12 +17,11 @@ class voxelNet(nn.Module):
         computes a embedding given a voxel shape 
     '''
 
-    def __init__(self, 3dnin_path, in_channels=1):
-        super(voxelNet_pretrained, self).__init__()
+    def __init__(self, model_path, in_channels=1):
+        super(voxelNet, self).__init__()
         
         model = voxel_nin.voxel_nin
       
-        model_path = 3dnin_path
         model.load_state_dict(torch.load(model_path))
 
         # remove layers
@@ -56,27 +55,26 @@ class voxelNet(nn.Module):
 
 class voxelNet_fixed(nn.Module):
     '''
+        Fine tuning 
         loading pretrained network and adding layers 
-        Fine tuning and training only fc layers
         computes a similarity between two input voxel shapes
     '''
 
-    def __init__(self, 3dnin_path, in_channels=1):
-        super(voxelNet_pretrained_samePaper, self).__init__()
+    def __init__(self, model_path, in_channels=1):
+        super(voxelNet_fixed, self).__init__()
       
         model = voxel_nin.voxel_nin
       
-        model_path = 3dnin_path
         model.load_state_dict(torch.load(model_path))
 
         # remove layers
         model = nn.Sequential(*list(model.children())[:-4])
 
-        # set requires_grad to false to all the layers
-        for name, module in model.named_children():
-            for param in module.parameters():
-                # print('child name %s , requires_grad %s' %(name, param.requires_grad))
-                param.requires_grad = False
+        # # set requires_grad to false to all the layers
+        # for name, module in model.named_children():
+        #     for param in module.parameters():
+        #         # print('child name %s , requires_grad %s' %(name, param.requires_grad))
+        #         param.requires_grad = False
 
         #Input: 1@(30x30x30) 
         self.pretrain = nn.Sequential(*list(model.children()))

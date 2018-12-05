@@ -19,12 +19,12 @@ import torch.nn.functional as F
 import torch.utils.data 
 import torch.optim as optim
 from torch.optim import lr_scheduler
-from torch.nn.init import xavier_normal, xavier_uniform
+# from torch.nn.init import xavier_normal, xavier_uniform
 # from torchviz import make_dot
 
 sys.path.append('./networks/')
-from voxelNet import voxelNet_fixed
-from triplet import TripletLoss_reverse 
+from voxelNet import *
+from triplet import * 
 
 sys.path.append('./utils/')
 from data_prep_util import *
@@ -43,7 +43,7 @@ parser.add_argument('--vox_sz', type=int, default = 30,  help='voxel size')
 # parser.add_argument('--augment', type=bool, default = False,  help='Data Augmentation')
 
 # Training 
-# parser.add_argument('--batchSize', type=int, default=1, help='input batch size')
+parser.add_argument('--batchSize', type=int, default=1, help='input batch size')
 # parser.add_argument('--MeshBatchSZ', type=int, default=8, help='Mesh batch size')
 parser.add_argument('--workers', type=int, default=4, help='# of data loading workers')
 parser.add_argument('--nepoch', type=int, default=500, help='# of training epochs')
@@ -111,16 +111,16 @@ test_loss = AverageValueMeter()
 if opt.data_type == 'mesh':
     pass
 elif opt.data_type == 'voxel':
-    # net = voxelNet(3dnin_path='./model/3dnin_fc_processed.pth')
-    net = voxelNet_fixed(3dnin_path='./model/3dnin_fc_processed.pth')
+    net = voxelNet(model_path='./model/3dnin_fc_processed.pth')
+    # net = voxelNet_fixed(model_path='./model/3dnin_fc_processed.pth')
 elif opt.data_type == 'image':
     pass
 else:
     raise NotImplementedError('choose a valid representation')
 
-    
 # Initialize the parameters of the network using xavier initialization(only the last fc layers)
 net = init_net(net, opt.cuda)
+# model_summary(net, True)
 
 if opt.model != 'None': 
     network_path = opt.model
@@ -130,18 +130,17 @@ if opt.model != 'None':
 
 
 # Setup the optimizer with its parameters
-# optimizer = optim.Adam(net.parameters(), lr = opt.lr, weight_decay=opt.wd)
-optimizer = optim.Adam(filter(lambda p : p.requires_grad, net.parameters()), lr = opt.lr, weight_decay=opt.wd)
+optimizer = optim.Adam(net.parameters(), lr = opt.lr, weight_decay=opt.wd)
+# optimizer = optim.Adam(filter(lambda p : p.requires_grad, net.parameters()), lr = opt.lr, weight_decay=opt.wd)
 
 # Setup the LR scheduler
 scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=opt.lr_steps, gamma=opt.lr_decay) 
 
 # Setup the loss function
-triplet_loss = TripletLoss_reverse(margin = opt.margin)
+triplet_loss = TripletLoss(margin = opt.margin)
 
 # Setup the triplet sampling strategy 
 # triplet_sampler = TripletSampler()
-
 
 # Logfile
 logfile = os.path.join(log_dir, 'log.txt')
@@ -170,12 +169,12 @@ def train(ep):
                 positive = positive.cuda()
                 negative = negative.cuda()
 
-            d_ap = net(anchor, positive)
-            d_an = net(anchor, negative)
+            anchor_embed = net(anchor)
+            positive_embed = net(positive)
+            negative_embed = net(negative)
 
             # Triplet Loss  
-            loss_net = triplet_loss(d_ap, d_an)
-
+            loss_net = triplet_loss(anchor_embed, positive_embed, negative_embed, size_average=False)
             train_loss.update(loss_net.data[0]) 
 
             loss_net.backward()     # gradient computation
@@ -184,7 +183,7 @@ def train(ep):
             print('[%d: %d/%d] train loss: %f' %(ep, i, len(traindataloader),
                                                  loss_net.data[0]))
             
-            del d_ap, d_an, anchor, positive, negative, loss_net
+            del anchor_embed, positive_embed, negative_embed,  anchor, positive, negative, loss_net
             torch.cuda.empty_cache()
 
     print(colored('%d: Avg. train loss: %f' %(ep, train_loss.avg), 'cyan')) 
@@ -208,15 +207,15 @@ def test(ep):
                 positive = positive.cuda()
                 negative = negative.cuda()
 
-            d_ap = net(anchor, positive)
-            d_an = net(anchor, negative)
+            anchor_embed = net(anchor)
+            positive_embed = net(positive)
+            negative_embed = net(negative)
 
             # Triplet Loss  
-            loss_net = triplet_loss(d_ap, d_an)
-
+            loss_net = triplet_loss(anchor_embed, positive_embed, negative_embed, size_average=False)
             test_loss.update(loss_net.data[0]) 
 
-            del d_ap, d_an, anchor, positive, negative, loss_net
+            del anchor_embed, positive_embed, negative_embed,  anchor, positive, negative, loss_net
             torch.cuda.empty_cache()
 
     print(colored('%d: Avg. test loss: %f' %(ep, test_loss.avg), 'cyan')) 

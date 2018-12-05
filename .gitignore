@@ -3,4 +3,4 @@ output/*
 *.pyc
 utils/*.pyc
 .DS_Store
-.detail_estimator_env
+.style_clustering_env
